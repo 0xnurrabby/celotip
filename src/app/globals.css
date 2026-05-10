@@ -1,26 +1,117 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-main, 'Space Grotesk', sans-serif);
+  background: #F5F0E8;
+  color: #1a1a1a;
+}
+
+/* ── Brutalist card ─────────────────────────────── */
+.brut-card {
+  background: #FDFAF4;
+  border: 2px solid #1a1a1a;
+  border-radius: 0;
+  transition: transform 0.08s ease;
+}
+.brut-card:hover { transform: translate(-2px, -2px); }
+
+/* ── Brutalist button ───────────────────────────── */
+.brut-btn {
+  border: 2px solid #1a1a1a;
+  border-radius: 0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.08s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  font-family: inherit;
+  text-decoration: none;
+}
+.brut-btn:hover  { transform: translate(-2px, -2px); }
+.brut-btn:active { transform: translate(0, 0); }
+.brut-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-yellow { background: #FFE566; color: #1a1a1a; }
+.btn-green  { background: #B8F0C8; color: #1a1a1a; }
+.btn-pink   { background: #FFB8CC; color: #1a1a1a; }
+.btn-blue   { background: #B8DEFF; color: #1a1a1a; }
+.btn-black  { background: #1a1a1a; color: #F5F0E8; }
+.btn-white  { background: #FDFAF4; color: #1a1a1a; }
+
+/* ── Brutalist input ────────────────────────────── */
+.brut-input {
+  border: 2px solid #1a1a1a;
+  border-radius: 0;
+  background: #FDFAF4;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+  outline: none;
+}
+.brut-input:focus { background: #FFF8D6; }
+.brut-input::placeholder { color: #aaa; }
+
+/* ── Tag / badge ────────────────────────────────── */
+.brut-tag {
+  border: 2px solid #1a1a1a;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-block;
+  line-height: 1.6;
+}
+
+/* ── Ticker / marquee ───────────────────────────── */
+.ticker-wrap {
+  overflow: hidden;
+  border-top: 2px solid #1a1a1a;
+  border-bottom: 2px solid #1a1a1a;
+  background: #FFE566;
+  padding: 6px 0;
+}
+.ticker-inner {
+  display: flex;
+  gap: 56px;
+  animation: ticker 24s linear infinite;
+  white-space: nowrap;
+  width: max-content;
+}
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── Rank badges ─────────────────────────────────── */
+.rank-1 { background: #FFE566; }
+.rank-2 { background: #E8E8E8; }
+.rank-3 { background: #FFD4A8; }
+
+/* ── Scrollbar ──────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #F5F0E8; }
+::-webkit-scrollbar-thumb { background: #1a1a1a; }
+
+/* ── Animations ─────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.25s ease forwards; }
+
+/* line-clamp util */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
