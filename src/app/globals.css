@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-body {
+html, body {
+  width: 100%;
+  min-height: 100vh;
   font-family: var(--font-main, 'Space Grotesk', sans-serif);
   background: #F5F0E8;
   color: #1a1a1a;
@@ -15,7 +21,9 @@ body {
   border-radius: 0;
   transition: transform 0.08s ease;
 }
-.brut-card:hover { transform: translate(-2px, -2px); }
+.brut-card:hover {
+  transform: translate(-2px, -2px);
+}
 
 /* ── Brutalist button ───────────────────────────── */
 .brut-btn {
@@ -33,10 +41,11 @@ body {
   letter-spacing: 0.02em;
   font-family: inherit;
   text-decoration: none;
+  white-space: nowrap;
 }
 .brut-btn:hover  { transform: translate(-2px, -2px); }
 .brut-btn:active { transform: translate(0, 0); }
-.brut-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.brut-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
 .btn-yellow { background: #FFE566; color: #1a1a1a; }
 .btn-green  { background: #B8F0C8; color: #1a1a1a; }
@@ -55,9 +64,11 @@ body {
   font-family: inherit;
   width: 100%;
   outline: none;
+  display: block;
+  color: #1a1a1a;
 }
 .brut-input:focus { background: #FFF8D6; }
-.brut-input::placeholder { color: #aaa; }
+.brut-input::placeholder { color: #999; }
 
 /* ── Tag / badge ────────────────────────────────── */
 .brut-tag {
@@ -69,20 +80,22 @@ body {
   text-transform: uppercase;
   display: inline-block;
   line-height: 1.6;
+  border-radius: 0;
 }
 
-/* ── Ticker / marquee ───────────────────────────── */
+/* ── Ticker ─────────────────────────────────────── */
 .ticker-wrap {
   overflow: hidden;
   border-top: 2px solid #1a1a1a;
   border-bottom: 2px solid #1a1a1a;
   background: #FFE566;
-  padding: 6px 0;
+  padding: 7px 0;
+  width: 100%;
 }
 .ticker-inner {
   display: flex;
   gap: 56px;
-  animation: ticker 24s linear infinite;
+  animation: ticker 28s linear infinite;
   white-space: nowrap;
   width: max-content;
 }
@@ -93,7 +106,7 @@ body {
 
 /* ── Rank badges ─────────────────────────────────── */
 .rank-1 { background: #FFE566; }
-.rank-2 { background: #E8E8E8; }
+.rank-2 { background: #E0E0E0; }
 .rank-3 { background: #FFD4A8; }
 
 /* ── Scrollbar ──────────────────────────────────── */
@@ -108,7 +121,6 @@ body {
 }
 .fade-up { animation: fadeUp 0.25s ease forwards; }
 
-/* line-clamp util */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

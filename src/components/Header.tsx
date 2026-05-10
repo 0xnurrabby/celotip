@@ -10,8 +10,8 @@ export function Header({ onOpenJar }: { onOpenJar: () => void }) {
   const { address, isConnected } = useAccount();
   const { connect }    = useConnect();
   const { disconnect } = useDisconnect();
-  const [isMini,   setIsMini  ] = useState(false);
-  const [mounted,  setMounted ] = useState(false);
+  const [isMini,  setIsMini ] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -21,42 +21,64 @@ export function Header({ onOpenJar }: { onOpenJar: () => void }) {
     }
   }, [connect]);
 
-  return (
-    <header className="border-b-2 border-[#1a1a1a] bg-[#FDFAF4] sticky top-0 z-50">
-      <div className="w-full max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+  const h: React.CSSProperties = {
+    width: "100%", background: "#FDFAF4",
+    borderBottom: "2px solid #1a1a1a",
+    position: "sticky", top: 0, zIndex: 50,
+  };
+  const inner: React.CSSProperties = {
+    width: "100%", maxWidth: "1100px", margin: "0 auto",
+    padding: "0 20px", height: "56px",
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+  };
+  const logo: React.CSSProperties = {
+    width: "36px", height: "36px", background: "#FFE566",
+    border: "2px solid #1a1a1a",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontWeight: 900, fontSize: "13px", flexShrink: 0,
+  };
+  const btn: React.CSSProperties = {
+    border: "2px solid #1a1a1a", cursor: "pointer",
+    fontWeight: 700, fontFamily: "inherit",
+    display: "inline-flex", alignItems: "center", gap: "6px",
+    fontSize: "13px", padding: "7px 14px",
+  };
 
+  return (
+    <header style={h}>
+      <div style={inner}>
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-[#FFE566] border-2 border-[#1a1a1a] flex items-center justify-center font-black text-sm select-none">
-            CT
-          </div>
-          <span className="font-black text-xl tracking-tight">CeloTip</span>
-          <span className="brut-tag bg-[#B8F0C8] text-[10px] hidden sm:inline-block">CELO</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={logo}>CT</div>
+          <span style={{ fontWeight: 900, fontSize: "20px", letterSpacing: "-0.02em" }}>CeloTip</span>
+          <span style={{ border: "2px solid #1a1a1a", padding: "2px 8px", fontSize: "10px", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", background: "#B8F0C8" }}>
+            CELO
+          </span>
         </div>
 
-        {/* Right side */}
+        {/* Right */}
         {mounted && (
-          <div className="flex items-center gap-2">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             {isMini && (
-              <span className="brut-tag bg-[#FFE566] text-[10px]">MINIPAY</span>
+              <span style={{ border: "2px solid #1a1a1a", padding: "2px 8px", fontSize: "10px", fontWeight: 800, textTransform: "uppercase", background: "#FFE566" }}>
+                MINIPAY
+              </span>
             )}
 
             {isConnected && address ? (
               <>
-                <button onClick={onOpenJar}
-                  className="brut-btn btn-yellow text-xs py-2 px-3 hidden sm:flex">
+                <button onClick={onOpenJar} style={{ ...btn, background: "#FFE566" }}>
                   <Zap size={13} /> My Jar
                 </button>
-                <div className="border-2 border-[#1a1a1a] bg-[#FDFAF4] px-3 py-1.5 text-xs font-mono font-bold hidden sm:block">
+                <div style={{ border: "2px solid #1a1a1a", padding: "7px 12px", fontSize: "12px", fontFamily: "monospace", fontWeight: 700, background: "#FDFAF4" }}>
                   {shortAddr(address)}
                 </div>
-                <button onClick={() => disconnect()} className="brut-btn btn-white py-2 px-2.5">
+                <button onClick={() => disconnect()} style={{ ...btn, background: "#FDFAF4", padding: "7px 10px" }}>
                   <LogOut size={14} />
                 </button>
               </>
             ) : (
-              <button onClick={() => connect({ connector: injected() })}
-                className="brut-btn btn-black text-xs py-2 px-4">
+              <button onClick={() => connect({ connector: injected() })} style={{ ...btn, background: "#1a1a1a", color: "#F5F0E8" }}>
                 <Wallet size={13} /> Connect
               </button>
             )}
