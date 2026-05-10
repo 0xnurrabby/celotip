@@ -23,13 +23,15 @@ export function CreateJarModal({ onClose, onSuccess }: { onClose: () => void; on
     if (!address || !wc || !pub || !handle.trim()) return;
     setBusy(true); setErr("");
     try {
+      // Switch to Celo Mainnet first
+      await wc.switchChain({ id: celo.id });
+
       const data = encodeFunctionData({
         abi: CELOTIP_ABI, functionName: "createJar",
         args: [handle.trim().replace(/^@/, ""), bio.trim(), emoji],
       });
       const hash = await wc.sendTransaction({
         account: address, to: CONTRACT_ADDRESS, data, chain: celo,
-        feeCurrency: TOKENS.cUSD.address,
       });
       await pub.waitForTransactionReceipt({ hash });
       onSuccess();

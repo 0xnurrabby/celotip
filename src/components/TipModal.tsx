@@ -28,17 +28,20 @@ export function TipModal({ jar, onClose, onSuccess }: { jar: Jar; onClose: () =>
     if (!address || !wc || !pub) return;
     setErr(""); setStep("approving");
     try {
+      // Switch to Celo first
+      await wc.switchChain({ id: celo.id });
+
       const amt = parseUnits(amount, selectedTok.decimals);
 
       // 1. Approve
       const appData = encodeFunctionData({ abi: ERC20_ABI, functionName: "approve", args: [CONTRACT_ADDRESS, amt] });
-      const appHash = await wc.sendTransaction({ account: address, to: token as `0x${string}`, data: appData, chain: celo, feeCurrency: token as `0x${string}` });
+      const appHash = await wc.sendTransaction({ account: address, to: token as `0x${string}`, data: appData, chain: celo });
       await pub.waitForTransactionReceipt({ hash: appHash });
 
       // 2. Tip
       setStep("tipping");
       const tipData = encodeFunctionData({ abi: CELOTIP_ABI, functionName: "tip", args: [jar.id, token as `0x${string}`, amt, message] });
-      const tipHash = await wc.sendTransaction({ account: address, to: CONTRACT_ADDRESS, data: tipData, chain: celo, feeCurrency: token as `0x${string}` });
+      const tipHash = await wc.sendTransaction({ account: address, to: CONTRACT_ADDRESS, data: tipData, chain: celo });
       await pub.waitForTransactionReceipt({ hash: tipHash });
 
       setStep("done");
