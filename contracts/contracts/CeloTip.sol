@@ -104,7 +104,7 @@ contract CeloTip {
             owner:         msg.sender,
             handle:        handle,
             bio:           bio,
-            avatarEmoji:   bytes(avatarEmoji).length > 0 ? avatarEmoji : unicode"🫙",
+            avatarEmoji:   bytes(avatarEmoji).length > 0 ? avatarEmoji : "jar",
             totalReceived: 0,
             tipCount:      0,
             exists:        true

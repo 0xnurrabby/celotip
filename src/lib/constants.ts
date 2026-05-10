@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000" as `0x${string}`; // update after deploy
+export const CONTRACT_ADDRESS = "0x9F4b5E7dD3F6b389eD96a35FDD34a89F1860655b" as `0x${string}`;
 
 export const TOKENS = {
   cUSD: { address: "0x765DE816845861e75A25fCA122bb6898B8B1282a" as `0x${string}`, symbol: "cUSD", decimals: 18 },
