@@ -43,10 +43,21 @@ export function TipModal({ jar, onClose, onSuccess }: {
       await wc.switchChain({ id: celo.id });
       const amt = parseUnits(amount, selectedTok.decimals);
 
-      // Approve
-      const appData = encodeFunctionData({ abi: ERC20_ABI, functionName: "approve", args: [CONTRACT_ADDRESS, amt] });
-      const appHash = await wc.sendTransaction({ account: address, to: token as `0x${string}`, data: appData, chain: celo });
-      await pub.waitForTransactionReceipt({ hash: appHash });
+      // Check existing allowance — skip approve if already enough
+      const currentAllowance = await pub.readContract({
+        address: token as `0x${string}`,
+        abi: ERC20_ABI,
+        functionName: "allowance",
+        args: [address, CONTRACT_ADDRESS],
+      }) as bigint;
+
+      if (currentAllowance < amt) {
+        // Approve max uint256 so future tips need no re-approve
+        const MAX = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        const appData = encodeFunctionData({ abi: ERC20_ABI, functionName: "approve", args: [CONTRACT_ADDRESS, MAX] });
+        const appHash = await wc.sendTransaction({ account: address, to: token as `0x${string}`, data: appData, chain: celo });
+        await pub.waitForTransactionReceipt({ hash: appHash });
+      }
 
       // Tip
       setStep("tipping");
@@ -225,18 +236,11 @@ export function TipModal({ jar, onClose, onSuccess }: {
           {/* Progress indicator */}
           {busy && (
             <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "center" }}>
-              <div style={{
-                width: "12px", height: "12px", border: "2px solid #1a1a1a",
-                background: "#FFE566",
-              }} />
+              <div style={{ width: "12px", height: "12px", border: "2px solid #1a1a1a", background: "#FFE566" }} />
               <div style={{ fontSize: "11px", color: "#666", fontWeight: 700 }}>
-                Step {step === "approving" ? "1" : "2"} of 2 —{" "}
-                {step === "approving" ? "Approving token spend" : "Sending your tip"}
+                {step === "approving" ? "Checking allowance & approving…" : "Sending your tip onchain…"}
               </div>
-              <div style={{
-                width: "12px", height: "12px", border: "2px solid #1a1a1a",
-                background: step === "tipping" ? "#FFE566" : "#F5F0E8",
-              }} />
+              <div style={{ width: "12px", height: "12px", border: "2px solid #1a1a1a", background: step === "tipping" ? "#FFE566" : "#F5F0E8" }} />
             </div>
           )}
         </div>
