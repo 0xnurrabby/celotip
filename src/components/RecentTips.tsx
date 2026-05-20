@@ -41,7 +41,7 @@ export function RecentTips({ tips, handles }: { tips: TipEvent[]; handles: Recor
                 {formatTokenAmount(t.amount, t.token)} {tok?.symbol}
               </p>
               {t.message && (
-                <p className="text-xs text-gray-500 mt-1 italic truncate">"{t.message}"</p>
+                <p className="text-xs text-gray-500 mt-1 italic truncate">&quot;{t.message}&quot;</p>
               )}
             </div>
             <p className="text-[10px] text-gray-400 font-mono flex-shrink-0">{timeAgo(t.timestamp)}</p>

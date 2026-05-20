@@ -22,7 +22,7 @@ type TipEv = {
 };
 
 const TICKER = [
-  "🫙 Send micro-tips in cUSD, USDT, USDC",
+  "🫙 Send micro-tips in CELO, cUSD, USDT, USDC",
   "⚡ Built on Celo · MiniPay compatible",
   "🏆 Top tippers on the leaderboard",
   "💸 1% platform fee · instant payouts",
@@ -73,8 +73,15 @@ export default function Home() {
     } catch { setMyJar(null); }
   }, [pub, address]);
 
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { loadMyJar(); }, [loadMyJar]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [load]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => { void loadMyJar(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [loadMyJar]);
 
   const filtered = jars.filter(j =>
     j.handle.toLowerCase().includes(search.toLowerCase()) ||
@@ -117,7 +124,7 @@ export default function Home() {
         <div style={S.hero}>
           <div>
             <h2 style={S.heroTitle}>TIP ANYONE<br />ON CELO ⚡</h2>
-            <p style={S.heroSub}>Create your tip jar. Share it. Get paid in cUSD, USDT or USDC — instantly onchain.</p>
+            <p style={S.heroSub}>Create your tip jar. Share it. Get paid in CELO, cUSD, USDT or USDC — instantly onchain.</p>
           </div>
           {address ? (
             myJar ? (
@@ -182,13 +189,13 @@ export default function Home() {
 
         {/* Tabs */}
         <div style={S.tabs}>
-          {[
+          {([
             { key: "leaderboard", icon: <Trophy size={13} />, label: "Leaderboard" },
             { key: "recent",      icon: <Clock   size={13} />, label: "Recent Tips"  },
-          ].map((t, i) => (
+          ] as const).map((t, i) => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key as any)}
+              onClick={() => setTab(t.key)}
               style={{
                 display: "flex", alignItems: "center", gap: "6px",
                 padding: "10px 20px", fontSize: "12px", fontWeight: 800,

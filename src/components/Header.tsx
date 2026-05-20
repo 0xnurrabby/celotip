@@ -2,24 +2,28 @@
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { injected } from "wagmi/connectors";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Wallet, LogOut, Zap } from "lucide-react";
 import { shortAddr } from "@/lib/utils";
+
+const subscribe = () => () => {};
+type MiniPayWindow = Window & { ethereum?: { isMiniPay?: boolean } };
+const getMountedSnapshot = () => true;
+const getServerSnapshot = () => false;
+const getMiniPaySnapshot = () => typeof window !== "undefined" && Boolean((window as MiniPayWindow).ethereum?.isMiniPay);
 
 export function Header({ onOpenJar }: { onOpenJar: () => void }) {
   const { address, isConnected } = useAccount();
   const { connect }    = useConnect();
   const { disconnect } = useDisconnect();
-  const [isMini,  setIsMini ] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const isMini = useSyncExternalStore(subscribe, getMiniPaySnapshot, getServerSnapshot);
+  const mounted = useSyncExternalStore(subscribe, getMountedSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    setMounted(true);
-    if ((window as any).ethereum?.isMiniPay) {
-      setIsMini(true);
+    if (isMini) {
       connect({ connector: injected({ target: "metaMask" }) });
     }
-  }, [connect]);
+  }, [connect, isMini]);
 
   const h: React.CSSProperties = {
     width: "100%", background: "#FDFAF4",

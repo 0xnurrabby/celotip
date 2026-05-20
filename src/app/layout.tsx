@@ -7,7 +7,7 @@ const font = Space_Grotesk({ subsets: ["latin"], variable: "--font-main" });
 
 export const metadata: Metadata = {
   title: "CeloTip — Tip Anyone on Celo",
-  description: "Send micro-tips in cUSD, USDT or USDC to anyone on Celo. Create your tip jar and get rewarded.",
+  description: "Send micro-tips in CELO, cUSD, USDT or USDC to anyone on Celo. Create your tip jar and get rewarded.",
   other: {
     "talentapp:project_verification": "951f3621699130160504576804dabea27ad4b7d64b06afe681d5a3b0795ad4ff2112159803716b894e704eb7e883794e718bdd809c4ebf26a0abff0a406326c4",
   },

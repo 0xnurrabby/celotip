@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /**
  * @title CeloTip — Onchain Micro-Tipping Platform on Celo
- * @notice Create a tip jar, receive cUSD/USDT/USDC tips from anyone, track your leaderboard rank
+ * @notice Create a tip jar, receive native CELO or cUSD/USDT/USDC tips from anyone, track your leaderboard rank
  */
 
 interface IERC20 {
@@ -19,6 +19,7 @@ contract CeloTip {
     address public constant CUSD  = 0x765DE816845861e75A25fCA122bb6898B8B1282a;
     address public constant USDT  = 0x617f3112bf5397D0467D315cC709EF968D9ba546;
     address public constant USDC  = 0xcebA9300f2b948710d2653dD7B07f33A8B32118C;
+    address public constant NATIVE_CELO = address(0);
 
     uint256 public constant PLATFORM_FEE_BPS = 100; // 1%
     address public immutable feeRecipient;
@@ -30,7 +31,7 @@ contract CeloTip {
         string  handle;        // @username style
         string  bio;
         string  avatarEmoji;   // single emoji avatar
-        uint256 totalReceived; // in USD terms (18 decimals, cUSD-normalised)
+        uint256 totalReceived; // 18-decimal normalised tip amount
         uint256 tipCount;
         bool    exists;
     }
@@ -125,7 +126,7 @@ contract CeloTip {
         address token,
         uint256 amount,
         string calldata message
-    ) external validToken(token) {
+    ) public validToken(token) {
         require(jars[jarId].exists, "Jar not found");
         require(amount > 0, "Amount must be > 0");
         require(bytes(message).length <= 140, "Message max 140 chars");
@@ -140,24 +141,15 @@ contract CeloTip {
         if (fee > 0) t.transfer(feeRecipient, fee);
         t.transfer(jars[jarId].owner, payout);
 
-        // normalise to 18-decimal USD value for leaderboard
-        uint256 normalised = _normalise(token, amount);
-        jars[jarId].totalReceived += normalised;
-        jars[jarId].tipCount      += 1;
+        _recordTip(jarId, msg.sender, token, amount, message);
+    }
 
-        TipEvent memory ev = TipEvent({
-            tipper:   msg.sender,
-            jarOwner: jars[jarId].owner,
-            jarId:    jarId,
-            token:    token,
-            amount:   amount,
-            message:  message,
-            timestamp: block.timestamp
-        });
-        tipHistory.push(ev);
-        jarTips[jarId].push(ev);
-
-        emit TipSent(jarId, msg.sender, token, amount, message);
+    // ── Core: send native CELO tip ───────────────────────────────────
+    function tipNative(
+        uint256 jarId,
+        string calldata message
+    ) external payable {
+        _tipNative(jarId, message);
     }
 
     // ── Core: tip by handle ──────────────────────────────────────────
@@ -169,7 +161,17 @@ contract CeloTip {
     ) external validToken(token) {
         uint256 jarId = handleToJar[handle];
         require(jarId != 0, "Handle not found");
-        this.tip(jarId, token, amount, message);
+        tip(jarId, token, amount, message);
+    }
+
+    // ── Core: native CELO tip by handle ──────────────────────────────
+    function tipNativeByHandle(
+        string calldata handle,
+        string calldata message
+    ) external payable {
+        uint256 jarId = handleToJar[handle];
+        require(jarId != 0, "Handle not found");
+        _tipNative(jarId, message);
     }
 
     // ── View: leaderboard (top 20 by totalReceived) ──────────────────
@@ -229,11 +231,55 @@ contract CeloTip {
     }
 
     // ── Internal helpers ─────────────────────────────────────────────
-    // USDT/USDC are 6-decimal on Celo; cUSD is 18-decimal
+    function _tipNative(uint256 jarId, string calldata message) internal {
+        require(jars[jarId].exists, "Jar not found");
+        require(msg.value > 0, "Amount must be > 0");
+        require(bytes(message).length <= 140, "Message max 140 chars");
+
+        uint256 fee    = (msg.value * PLATFORM_FEE_BPS) / 10000;
+        uint256 payout = msg.value - fee;
+
+        _recordTip(jarId, msg.sender, NATIVE_CELO, msg.value, message);
+
+        if (fee > 0) {
+            (bool feeOk, ) = payable(feeRecipient).call{value: fee}("");
+            require(feeOk, "Fee transfer failed");
+        }
+        (bool payoutOk, ) = payable(jars[jarId].owner).call{value: payout}("");
+        require(payoutOk, "Payout failed");
+    }
+
+    function _recordTip(
+        uint256 jarId,
+        address tipper,
+        address token,
+        uint256 amount,
+        string calldata message
+    ) internal {
+        uint256 normalised = _normalise(token, amount);
+        jars[jarId].totalReceived += normalised;
+        jars[jarId].tipCount      += 1;
+
+        TipEvent memory ev = TipEvent({
+            tipper:   tipper,
+            jarOwner: jars[jarId].owner,
+            jarId:    jarId,
+            token:    token,
+            amount:   amount,
+            message:  message,
+            timestamp: block.timestamp
+        });
+        tipHistory.push(ev);
+        jarTips[jarId].push(ev);
+
+        emit TipSent(jarId, tipper, token, amount, message);
+    }
+
+    // CELO/cUSD are 18-decimal; USDT/USDC are 6-decimal on Celo
     function _normalise(address token, uint256 amount) internal pure returns (uint256) {
         if (token == USDT || token == USDC) {
             return amount * 1e12; // scale 6→18 decimals
         }
-        return amount; // cUSD already 18
+        return amount; // CELO/cUSD already 18
     }
 }

@@ -16,7 +16,7 @@ export function formatTokenAmount(amount: bigint, tokenAddr: string): string {
   return val.toFixed(val < 1 ? 4 : 2);
 }
 
-// normalised (18-dec) to display USD
+// normalised 18-decimal leaderboard amount
 export function formatUSD(normalised: bigint): string {
   const val = parseFloat(formatUnits(normalised, 18));
   if (val >= 1000) return (val / 1000).toFixed(1) + "k";

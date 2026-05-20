@@ -3,21 +3,29 @@
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { config } from "@/lib/wagmi";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
 
 const qc = new QueryClient();
+const subscribe = () => () => {};
+
+type MiniPayWindow = Window & { ethereum?: { isMiniPay?: boolean } };
+
+function isMiniPay() {
+  return typeof window !== "undefined" && Boolean((window as MiniPayWindow).ethereum?.isMiniPay);
+}
 
 function AutoConnect({ children }: { children: React.ReactNode }) {
   const { connect } = useConnect();
-  const [ok, setOk] = useState(false);
+  const miniPay = useSyncExternalStore(subscribe, isMiniPay, () => false);
+
   useEffect(() => {
-    setOk(true);
-    if ((window as any).ethereum?.isMiniPay)
+    if (miniPay) {
       connect({ connector: injected({ target: "metaMask" }) });
-  }, [connect]);
-  if (!ok) return null;
+    }
+  }, [connect, miniPay]);
+
   return <>{children}</>;
 }
 

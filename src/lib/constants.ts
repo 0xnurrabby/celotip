@@ -1,9 +1,13 @@
-export const CONTRACT_ADDRESS = "0x9F4b5E7dD3F6b389eD96a35FDD34a89F1860655b" as `0x${string}`;
+const DEFAULT_CONTRACT_ADDRESS = "0x9F4b5E7dD3F6b389eD96a35FDD34a89F1860655b";
+
+export const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || DEFAULT_CONTRACT_ADDRESS) as `0x${string}`;
+export const NATIVE_CELO_ADDRESS = "0x0000000000000000000000000000000000000000" as `0x${string}`;
 
 export const TOKENS = {
-  cUSD: { address: "0x765DE816845861e75A25fCA122bb6898B8B1282a" as `0x${string}`, symbol: "cUSD", decimals: 18 },
-  USDT: { address: "0x617f3112bf5397D0467D315cC709EF968D9ba546" as `0x${string}`, symbol: "USDT", decimals: 6  },
-  USDC: { address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C" as `0x${string}`, symbol: "USDC", decimals: 6  },
+  CELO: { address: NATIVE_CELO_ADDRESS, symbol: "CELO", decimals: 18, native: true  },
+  cUSD: { address: "0x765DE816845861e75A25fCA122bb6898B8B1282a" as `0x${string}`, symbol: "cUSD", decimals: 18, native: false },
+  USDT: { address: "0x617f3112bf5397D0467D315cC709EF968D9ba546" as `0x${string}`, symbol: "USDT", decimals: 6,  native: false },
+  USDC: { address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C" as `0x${string}`, symbol: "USDC", decimals: 6,  native: false },
 } as const;
 
 export const CELO_CHAIN_ID = 42220;

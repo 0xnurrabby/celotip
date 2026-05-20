@@ -6,7 +6,7 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { celo } from "wagmi/chains";
 import { X, Loader2, Sparkles } from "lucide-react";
 import { CELOTIP_ABI } from "@/lib/abi";
-import { CONTRACT_ADDRESS, AVATAR_EMOJIS, TOKENS } from "@/lib/constants";
+import { CONTRACT_ADDRESS, AVATAR_EMOJIS } from "@/lib/constants";
 
 export function CreateJarModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const { address } = useAccount();
@@ -33,11 +33,17 @@ export function CreateJarModal({ onClose, onSuccess }: { onClose: () => void; on
       const hash = await wc.sendTransaction({
         account: address, to: CONTRACT_ADDRESS, data, chain: celo,
       });
-      await pub.waitForTransactionReceipt({ hash });
+      const receipt = await pub.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("Create jar transaction reverted.");
       onSuccess();
       onClose();
-    } catch (e: any) {
-      setErr(e?.shortMessage || e?.message || "Transaction failed");
+    } catch (e: unknown) {
+      const error = e as { shortMessage?: unknown; message?: unknown };
+      setErr(
+        typeof error.shortMessage === "string" ? error.shortMessage :
+        typeof error.message === "string" ? error.message :
+        "Transaction failed"
+      );
     } finally {
       setBusy(false);
     }

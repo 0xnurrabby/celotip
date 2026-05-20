@@ -15,6 +15,7 @@ interface Jar {
 }
 
 const TOKEN_COLORS: Record<string, string> = {
+  CELO: "#FFE566",
   cUSD: "#FFE566",
   USDT: "#B8F0C8",
   USDC: "#B8DEFF",
@@ -27,7 +28,7 @@ export function TipModal({ jar, onClose, onSuccess }: {
   const pub          = usePublicClient();
   const { data: wc } = useWalletClient();
 
-  const [token,   setToken  ] = useState(TOKENS.cUSD.address);
+  const [token,   setToken  ] = useState(TOKENS.CELO.address);
   const [amount,  setAmount ] = useState("1");
   const [message, setMessage] = useState("");
   const [step,    setStep   ] = useState<"idle" | "approving" | "tipping" | "done">("idle");
@@ -35,40 +36,69 @@ export function TipModal({ jar, onClose, onSuccess }: {
 
   const selectedTok = Object.values(TOKENS).find(t => t.address === token)!;
   const busy = step !== "idle" && step !== "done";
+  const minAmount = `0.${"0".repeat(selectedTok.decimals - 1)}1`;
 
   async function send() {
     if (!address || !wc || !pub || !amount) return;
-    setErr(""); setStep("approving");
+    setErr("");
     try {
+      const rawAmount = amount.trim();
+      if (!/^(?:\d+\.?\d*|\.\d+)$/.test(rawAmount)) throw new Error("Enter a valid amount.");
+
+      const [, fraction = ""] = rawAmount.split(".");
+      if (fraction.replace(/0+$/, "").length > selectedTok.decimals) {
+        throw new Error(`${selectedTok.symbol} supports up to ${selectedTok.decimals} decimal places.`);
+      }
+
+      const amt = parseUnits(rawAmount, selectedTok.decimals);
+      if (amt <= 0n) throw new Error(`Minimum amount is ${minAmount} ${selectedTok.symbol}.`);
+
+      setStep(selectedTok.native ? "tipping" : "approving");
       await wc.switchChain({ id: celo.id });
-      const amt = parseUnits(amount, selectedTok.decimals);
 
-      // Check existing allowance — skip approve if already enough
-      const currentAllowance = await pub.readContract({
-        address: token as `0x${string}`,
-        abi: ERC20_ABI,
-        functionName: "allowance",
-        args: [address, CONTRACT_ADDRESS],
-      }) as bigint;
+      if (!selectedTok.native) {
+        // Check existing allowance — skip approve if already enough
+        const currentAllowance = await pub.readContract({
+          address: token as `0x${string}`,
+          abi: ERC20_ABI,
+          functionName: "allowance",
+          args: [address, CONTRACT_ADDRESS],
+        }) as bigint;
 
-      if (currentAllowance < amt) {
-        // Approve max uint256 so future tips need no re-approve
-        const MAX = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        const appData = encodeFunctionData({ abi: ERC20_ABI, functionName: "approve", args: [CONTRACT_ADDRESS, MAX] });
-        const appHash = await wc.sendTransaction({ account: address, to: token as `0x${string}`, data: appData, chain: celo });
-        await pub.waitForTransactionReceipt({ hash: appHash });
+        if (currentAllowance < amt) {
+          // Approve max uint256 so future tips need no re-approve
+          const MAX = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+          const appData = encodeFunctionData({ abi: ERC20_ABI, functionName: "approve", args: [CONTRACT_ADDRESS, MAX] });
+          const appHash = await wc.sendTransaction({ account: address, to: token as `0x${string}`, data: appData, chain: celo });
+          const appReceipt = await pub.waitForTransactionReceipt({ hash: appHash });
+          if (appReceipt.status !== "success") throw new Error("Token approval reverted.");
+        }
       }
 
       // Tip
       setStep("tipping");
-      const tipData = encodeFunctionData({ abi: CELOTIP_ABI, functionName: "tip", args: [jar.id, token as `0x${string}`, amt, message] });
-      const tipHash = await wc.sendTransaction({ account: address, to: CONTRACT_ADDRESS, data: tipData, chain: celo });
-      await pub.waitForTransactionReceipt({ hash: tipHash });
+      const tipData = selectedTok.native
+        ? encodeFunctionData({ abi: CELOTIP_ABI, functionName: "tipNative", args: [jar.id, message] })
+        : encodeFunctionData({ abi: CELOTIP_ABI, functionName: "tip", args: [jar.id, token as `0x${string}`, amt, message] });
+      const tipHash = await wc.sendTransaction({
+        account: address,
+        to: CONTRACT_ADDRESS,
+        data: tipData,
+        chain: celo,
+        value: selectedTok.native ? amt : undefined,
+      });
+      const tipReceipt = await pub.waitForTransactionReceipt({ hash: tipHash });
+      if (tipReceipt.status !== "success") throw new Error("Tip transaction reverted.");
 
       setStep("done");
       setTimeout(() => { onSuccess(); onClose(); }, 2000);
-    } catch (e: any) {
-      setErr(e?.shortMessage || e?.message || "Transaction failed");
+    } catch (e: unknown) {
+      const error = e as { shortMessage?: unknown; message?: unknown };
+      setErr(
+        typeof error.shortMessage === "string" ? error.shortMessage :
+        typeof error.message === "string" ? error.message :
+        "Transaction failed"
+      );
       setStep("idle");
     }
   }
@@ -134,7 +164,7 @@ export function TipModal({ jar, onClose, onSuccess }: {
           {/* ── Token ─────────────────────────────── */}
           <div>
             <div style={sectionLabel}>Token</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
               {Object.values(TOKENS).map(t => (
                 <button key={t.address} onClick={() => setToken(t.address)} style={{
                   border: "2px solid #1a1a1a",
@@ -170,7 +200,7 @@ export function TipModal({ jar, onClose, onSuccess }: {
             </div>
             {/* Custom input */}
             <input
-              type="number" value={amount} min="0.01" step="0.01"
+              type="number" value={amount} min={minAmount} step={minAmount}
               onChange={e => setAmount(e.target.value)}
               style={inp}
               onFocus={e => (e.target.style.background = "#FFF8D6")}
