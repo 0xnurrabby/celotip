@@ -75,18 +75,15 @@ export function TipModal({ jar, onClose, onSuccess }: {
         }
       }
 
-      // Tip
       setStep("tipping");
-      const tipData = selectedTok.native
-        ? encodeFunctionData({ abi: CELOTIP_ABI, functionName: "tipNative", args: [jar.id, message] })
-        : encodeFunctionData({ abi: CELOTIP_ABI, functionName: "tip", args: [jar.id, token as `0x${string}`, amt, message] });
-      const tipHash = await wc.sendTransaction({
-        account: address,
-        to: CONTRACT_ADDRESS,
-        data: tipData,
-        chain: celo,
-        value: selectedTok.native ? amt : undefined,
-      });
+      const tipHash = selectedTok.native
+        ? await wc.sendTransaction({ account: address, to: jar.owner as `0x${string}`, value: amt, chain: celo })
+        : await wc.sendTransaction({
+            account: address,
+            to: CONTRACT_ADDRESS,
+            data: encodeFunctionData({ abi: CELOTIP_ABI, functionName: "tip", args: [jar.id, token as `0x${string}`, amt, message] }),
+            chain: celo,
+          });
       const tipReceipt = await pub.waitForTransactionReceipt({ hash: tipHash });
       if (tipReceipt.status !== "success") throw new Error("Tip transaction reverted.");
 

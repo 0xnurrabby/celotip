@@ -3,12 +3,8 @@ export const CELOTIP_ABI = [
   { inputs:[{name:"handle",type:"string"},{name:"bio",type:"string"},{name:"avatarEmoji",type:"string"}], name:"createJar", outputs:[{name:"",type:"uint256"}], stateMutability:"nonpayable", type:"function" },
   // tip
   { inputs:[{name:"jarId",type:"uint256"},{name:"token",type:"address"},{name:"amount",type:"uint256"},{name:"message",type:"string"}], name:"tip", outputs:[], stateMutability:"nonpayable", type:"function" },
-  // tipNative
-  { inputs:[{name:"jarId",type:"uint256"},{name:"message",type:"string"}], name:"tipNative", outputs:[], stateMutability:"payable", type:"function" },
   // tipByHandle
   { inputs:[{name:"handle",type:"string"},{name:"token",type:"address"},{name:"amount",type:"uint256"},{name:"message",type:"string"}], name:"tipByHandle", outputs:[], stateMutability:"nonpayable", type:"function" },
-  // tipNativeByHandle
-  { inputs:[{name:"handle",type:"string"},{name:"message",type:"string"}], name:"tipNativeByHandle", outputs:[], stateMutability:"payable", type:"function" },
   // getLeaderboard
   { inputs:[], name:"getLeaderboard", outputs:[{ components:[{name:"id",type:"uint256"},{name:"owner",type:"address"},{name:"handle",type:"string"},{name:"bio",type:"string"},{name:"avatarEmoji",type:"string"},{name:"totalReceived",type:"uint256"},{name:"tipCount",type:"uint256"},{name:"exists",type:"bool"}], name:"", type:"tuple[]" }], stateMutability:"view", type:"function" },
   // getJarTips
